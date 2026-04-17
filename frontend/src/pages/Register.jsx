@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import AuthLayout from '../components/AuthLayout';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -16,7 +17,6 @@ export default function Register() {
 
     try {
       await api.register(username, password);
-      // If successful, send them to the login page
       navigate('/login');
     } catch (err) {
       setError(err.message);
@@ -26,54 +26,55 @@ export default function Register() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2>Create an Account</h2>
-        {error && <div style={styles.error}>{error}</div>}
-        
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label>Username</label>
-            <input 
-              type="text" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              required 
-              style={styles.input}
-            />
-          </div>
-          
-          <div style={styles.inputGroup}>
-            <label>Password</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-              style={styles.input}
-            />
-          </div>
-          
-          <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? 'Creating account...' : 'Sign Up'}
-          </button>
-        </form>
-        
-        <p style={{ marginTop: '15px', textAlign: 'center' }}>
-          Already have an account? <Link to="/login">Log in here</Link>
-        </p>
-      </div>
-    </div>
+    <AuthLayout 
+      title="Create your account" 
+      subtitle={
+        <span>
+          Already have an account?{' '}
+          <Link to="/login" className="font-medium text-brand-600 hover:text-brand-500 transition-colors">
+            Log in here
+          </Link>
+        </span>
+      }
+    >
+      {error && (
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+          <input
+            type="text"
+            required
+            className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-all"
+            placeholder="Choose a unique username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+          <input
+            type="password"
+            required
+            className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-all"
+            placeholder="Create a strong password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-brand-600 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all disabled:opacity-70 shadow-md"
+        >
+          {loading ? 'Creating account...' : 'Create Account'}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
-
-// Basic inline styles to keep things clean without bloated CSS files
-const styles = {
-  container: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f7f6' },
-  card: { background: 'white', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' },
-  inputGroup: { display: 'flex', flexDirection: 'column', gap: '5px' },
-  input: { padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '16px' },
-  button: { padding: '12px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px', cursor: 'pointer' },
-  error: { background: '#ffebee', color: '#c62828', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px' }
-};
