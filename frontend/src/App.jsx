@@ -1,61 +1,37 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+// Simple placeholder components for now
+const DashboardPlaceholder = () => (
+  <div style={{ padding: '50px', textAlign: 'center' }}>
+    <h1>Dashboard</h1>
+    <p>Welcome! You have successfully logged in and completed onboarding.</p>
+  </div>
+);
+
+const OnboardingPlaceholder = () => (
+  <div style={{ padding: '50px', textAlign: 'center' }}>
+    <h1>Profile Setup</h1>
+    <p>Please complete your profile and preferences to start matching!</p>
+  </div>
+);
 
 function App() {
-  const [healthData, setHealthData] = useState(null)
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Fetch data from the Flask backend using the environment variable
-    const fetchHealthCheck = async () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_BASE_URL
-        const response = await fetch(`${apiUrl}/health`)
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const data = await response.json()
-        setHealthData(data)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchHealthCheck()
-  }, [])
-
   return (
-    <div className="App">
-      <header>
-        <h1>Roommate Matching App</h1>
-        <h2>System Status</h2>
-      </header>
+    <Routes>
+      {/* Default route redirects to login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
       
-      <main>
-        {loading && <p>Connecting to backend...</p>}
-        
-        {error && (
-          <div style={{ color: 'red', border: '1px solid red', padding: '10px' }}>
-            <p><strong>Connection Error:</strong> {error}</p>
-            <p>Make sure your Flask server is running on port 5000!</p>
-          </div>
-        )}
-        
-        {healthData && (
-          <div style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px', color: '#333' }}>
-            <p><strong>Status:</strong> {healthData.status}</p>
-            <p><strong>Message:</strong> {healthData.message}</p>
-            <p><strong>Environment:</strong> {healthData.environment}</p>
-          </div>
-        )}
-      </main>
-    </div>
-  )
+      {/* Auth Routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
+      {/* Protected Routes (We will add strict security to these later) */}
+      <Route path="/dashboard" element={<DashboardPlaceholder />} />
+      <Route path="/onboarding" element={<OnboardingPlaceholder />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
