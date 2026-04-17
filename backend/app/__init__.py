@@ -1,15 +1,32 @@
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from .config import Config
+from .extensions import db, migrate
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Enable Cross-Origin Resource Sharing (Allows React to communicate with Flask)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
     CORS(app)
 
-    # A simple health-check route to test our setup
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    
+    # Initialize JWT Manager
+    jwt = JWTManager(app)
+    
+    # Import models so Flask-Migrate can register them
+    from . import models
+
+    # Import and register the authentication blueprint
+    from .auth import auth_bp
+    app.register_blueprint(auth_bp)
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({
