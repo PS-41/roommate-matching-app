@@ -57,5 +57,18 @@ export const api = {
 
     async getCurrentUser() {
         return await this.request('/auth/me');
+    },
+
+    // Update Profile Data
+    async updateProfile(profileData) {
+        return await this.request('/profile/update', {
+            method: 'POST',
+            body: JSON.stringify(profileData),
+        });
+    },
+
+    // Fetch existing profile data to pre-fill the edit form
+    async getProfileData() {
+        return await this.request('/profile/me');
     }
 };

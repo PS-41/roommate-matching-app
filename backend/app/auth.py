@@ -52,7 +52,7 @@ def login():
         "user": {
             "id": user.id, 
             "username": user.username,
-            "has_completed_onboarding": bool(user.target_country and user.zip_code)
+            "has_location_set": bool(user.target_country and user.zip_code)
         }
     }), 200
 
@@ -71,5 +71,5 @@ def get_current_user():
         "username": user.username,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "has_completed_onboarding": bool(user.target_country and user.zip_code)
+        "has_location_set": bool(user.target_country and user.zip_code)
     }), 200

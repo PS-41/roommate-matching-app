@@ -27,6 +27,10 @@ def create_app():
     from .auth import auth_bp
     app.register_blueprint(auth_bp)
 
+    # Import and register the profile blueprint
+    from .profile import profile_bp
+    app.register_blueprint(profile_bp)
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({

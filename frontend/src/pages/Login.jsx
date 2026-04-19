@@ -16,12 +16,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await api.login(username, password);
-      if (!data.user.has_completed_onboarding) {
-        navigate('/onboarding');
-      } else {
-        navigate('/dashboard');
-      }
+      await api.login(username, password);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
