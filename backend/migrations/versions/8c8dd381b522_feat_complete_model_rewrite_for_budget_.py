@@ -1,8 +1,8 @@
-"""Initial schema: Users, Preferences, Matches, Connections, Messages
+"""feat: complete model rewrite for budget and lifestyle scoring
 
-Revision ID: 6bfe9a9fd97a
+Revision ID: 8c8dd381b522
 Revises: 
-Create Date: 2026-04-17 17:41:34.822371
+Create Date: 2026-04-19 18:41:34.462601
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6bfe9a9fd97a'
+revision = '8c8dd381b522'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -89,11 +89,17 @@ def upgrade():
     sa.Column('my_guests_frequency', sa.Integer(), nullable=True),
     sa.Column('pref_guests_frequency', sa.Integer(), nullable=True),
     sa.Column('guests_is_strict', sa.Boolean(), nullable=True),
-    sa.Column('is_smoker', sa.Boolean(), nullable=True),
-    sa.Column('pref_smoker', sa.Boolean(), nullable=True),
-    sa.Column('smoker_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('my_smoking', sa.Integer(), nullable=True),
+    sa.Column('pref_smoking', sa.Integer(), nullable=True),
+    sa.Column('smoking_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('my_drinking', sa.Integer(), nullable=True),
+    sa.Column('pref_drinking', sa.Integer(), nullable=True),
+    sa.Column('drinking_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('budget_min', sa.Integer(), nullable=True),
+    sa.Column('budget_max', sa.Integer(), nullable=True),
+    sa.Column('budget_is_strict', sa.Boolean(), nullable=True),
     sa.Column('has_pets', sa.Boolean(), nullable=True),
-    sa.Column('pref_pets', sa.Boolean(), nullable=True),
+    sa.Column('pref_no_pets', sa.Boolean(), nullable=True),
     sa.Column('pets_is_strict', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
