@@ -96,17 +96,17 @@ def update_profile():
 
     pref.my_sleep_schedule = to_int(data.get('my_sleep_schedule'))
     pref.pref_sleep_schedule = to_int(data.get('pref_sleep_schedule'))
-    pref.sleep_is_strict = to_bool(data.get('sleep_is_strict', False), False)
+    pref.sleep_schedule_is_strict = to_bool(data.get('sleep_schedule_is_strict', False), False)
     pref.sleep_schedule_do_not_care = to_bool(data.get('sleep_schedule_do_not_care', False), False)
 
     pref.my_noise_tolerance = to_int(data.get('my_noise_tolerance'))
     pref.pref_noise_tolerance = to_int(data.get('pref_noise_tolerance'))
-    pref.noise_is_strict = to_bool(data.get('noise_is_strict', False), False)
+    pref.noise_tolerance_is_strict = to_bool(data.get('noise_tolerance_is_strict', False), False)
     pref.noise_tolerance_do_not_care = to_bool(data.get('noise_tolerance_do_not_care', False), False)
 
     pref.my_guests_frequency = to_int(data.get('my_guests_frequency'))
     pref.pref_guests_frequency = to_int(data.get('pref_guests_frequency'))
-    pref.guests_is_strict = to_bool(data.get('guests_is_strict', False), False)
+    pref.guests_frequency_is_strict = to_bool(data.get('guests_frequency_is_strict', False), False)
     pref.guests_frequency_do_not_care = to_bool(data.get('guests_frequency_do_not_care', False), False)
 
     pref.my_smoking = to_int(data.get('my_smoking'))
@@ -158,7 +158,6 @@ def get_profile():
         "preferred_age_min": pref.preferred_age_min if pref and pref.preferred_age_min is not None else '',
         "preferred_age_max": pref.preferred_age_max if pref and pref.preferred_age_max is not None else '',
 
-
         "my_cleanliness": pref.my_cleanliness if pref and pref.my_cleanliness is not None else 3,
         "pref_cleanliness": pref.pref_cleanliness if pref and pref.pref_cleanliness is not None else 3,
         "cleanliness_is_strict": pref.cleanliness_is_strict if pref else False,
@@ -166,17 +165,17 @@ def get_profile():
 
         "my_sleep_schedule": pref.my_sleep_schedule if pref and pref.my_sleep_schedule is not None else 3,
         "pref_sleep_schedule": pref.pref_sleep_schedule if pref and pref.pref_sleep_schedule is not None else 3,
-        "sleep_is_strict": pref.sleep_is_strict if pref else False,
+        "sleep_schedule_is_strict": pref.sleep_schedule_is_strict if pref else False,
         "sleep_schedule_do_not_care": pref.sleep_schedule_do_not_care if pref else False,
 
         "my_noise_tolerance": pref.my_noise_tolerance if pref and pref.my_noise_tolerance is not None else 3,
         "pref_noise_tolerance": pref.pref_noise_tolerance if pref and pref.pref_noise_tolerance is not None else 3,
-        "noise_is_strict": pref.noise_is_strict if pref else False,
+        "noise_tolerance_is_strict": pref.noise_tolerance_is_strict if pref else False,
         "noise_tolerance_do_not_care": pref.noise_tolerance_do_not_care if pref else False,
 
         "my_guests_frequency": pref.my_guests_frequency if pref and pref.my_guests_frequency is not None else 3,
         "pref_guests_frequency": pref.pref_guests_frequency if pref and pref.pref_guests_frequency is not None else 3,
-        "guests_is_strict": pref.guests_is_strict if pref else False,
+        "guests_frequency_is_strict": pref.guests_frequency_is_strict if pref else False,
         "guests_frequency_do_not_care": pref.guests_frequency_do_not_care if pref else False,
 
         "my_smoking": pref.my_smoking if pref and pref.my_smoking is not None else 3,

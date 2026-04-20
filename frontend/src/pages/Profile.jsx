@@ -22,6 +22,10 @@ export default function Profile() {
     zip_code: '',
     search_radius_miles: 10,
 
+    preferred_gender: 'Any',
+    preferred_age_min: '',
+    preferred_age_max: '',
+
     budget_min: '',
     budget_max: '',
     budget_is_strict: false,
@@ -33,17 +37,17 @@ export default function Profile() {
 
     my_sleep_schedule: 3,
     pref_sleep_schedule: 3,
-    sleep_is_strict: false,
+    sleep_schedule_is_strict: false,
     sleep_schedule_do_not_care: false,
 
     my_noise_tolerance: 3,
     pref_noise_tolerance: 3,
-    noise_is_strict: false,
+    noise_tolerance_is_strict: false,
     noise_tolerance_do_not_care: false,
 
     my_guests_frequency: 3,
     pref_guests_frequency: 3,
-    guests_is_strict: false,
+    guests_frequency_is_strict: false,
     guests_frequency_do_not_care: false,
 
     my_smoking: 3,
@@ -480,6 +484,31 @@ export default function Profile() {
                   <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
                     Roommate Dealbreakers
                   </h3>
+
+                  {/* Added Basic Preferences Block */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+                    <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Basic Preferences</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">Preferred Gender</label>
+                        <select name="preferred_gender" value={formData.preferred_gender} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-white">
+                          <option value="Any">No Preference</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Non-Binary">Non-Binary</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">Minimum Age</label>
+                        <input type="number" name="preferred_age_min" value={formData.preferred_age_min} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500" placeholder="e.g. 18" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">Maximum Age</label>
+                        <input type="number" name="preferred_age_max" value={formData.preferred_age_max} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500" placeholder="e.g. 30" />
+                      </div>
+                    </div>
+                  </div>
 
                   {numericTraits.map((trait) => (
                     <div

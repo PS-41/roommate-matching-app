@@ -1,8 +1,8 @@
-"""feat: model rewrite to have do not care in preferences
+"""feat: model rewrite
 
-Revision ID: 7eb01cbd022e
+Revision ID: 42f9a75b7a3d
 Revises: 
-Create Date: 2026-04-19 19:15:43.221560
+Create Date: 2026-04-19 20:20:43.267541
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7eb01cbd022e'
+revision = '42f9a75b7a3d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -83,15 +83,15 @@ def upgrade():
     sa.Column('cleanliness_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_sleep_schedule', sa.Integer(), nullable=True),
     sa.Column('pref_sleep_schedule', sa.Integer(), nullable=True),
-    sa.Column('sleep_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('sleep_schedule_is_strict', sa.Boolean(), nullable=True),
     sa.Column('sleep_schedule_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_noise_tolerance', sa.Integer(), nullable=True),
     sa.Column('pref_noise_tolerance', sa.Integer(), nullable=True),
-    sa.Column('noise_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('noise_tolerance_is_strict', sa.Boolean(), nullable=True),
     sa.Column('noise_tolerance_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_guests_frequency', sa.Integer(), nullable=True),
     sa.Column('pref_guests_frequency', sa.Integer(), nullable=True),
-    sa.Column('guests_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('guests_frequency_is_strict', sa.Boolean(), nullable=True),
     sa.Column('guests_frequency_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_smoking', sa.Integer(), nullable=True),
     sa.Column('pref_smoking', sa.Integer(), nullable=True),

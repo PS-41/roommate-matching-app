@@ -58,17 +58,17 @@ class Preference(db.Model):
 
     my_sleep_schedule = db.Column(db.Integer, nullable=True)
     pref_sleep_schedule = db.Column(db.Integer, nullable=True)
-    sleep_is_strict = db.Column(db.Boolean, default=False)
+    sleep_schedule_is_strict = db.Column(db.Boolean, default=False)
     sleep_schedule_do_not_care = db.Column(db.Boolean, default=False)
 
     my_noise_tolerance = db.Column(db.Integer, nullable=True)
     pref_noise_tolerance = db.Column(db.Integer, nullable=True)
-    noise_is_strict = db.Column(db.Boolean, default=False)
+    noise_tolerance_is_strict = db.Column(db.Boolean, default=False)
     noise_tolerance_do_not_care = db.Column(db.Boolean, default=False)
 
     my_guests_frequency = db.Column(db.Integer, nullable=True)
     pref_guests_frequency = db.Column(db.Integer, nullable=True)
-    guests_is_strict = db.Column(db.Boolean, default=False)
+    guests_frequency_is_strict = db.Column(db.Boolean, default=False)
     guests_frequency_do_not_care = db.Column(db.Boolean, default=False)
 
     my_smoking = db.Column(db.Integer, nullable=True)
@@ -88,7 +88,6 @@ class Preference(db.Model):
     has_pets = db.Column(db.Boolean, nullable=True)
     pref_no_pets = db.Column(db.Boolean, nullable=True)
     pets_is_strict = db.Column(db.Boolean, default=False)
-
 
 
 class Match(db.Model):
