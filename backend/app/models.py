@@ -90,14 +90,24 @@ class Preference(db.Model):
     pets_is_strict = db.Column(db.Boolean, default=False)
 
 
-class Match(db.Model):
-    __tablename__ = 'matches'
+class CompatibilityScore(db.Model):
+    __tablename__ = 'compatibility_scores'
 
     id = db.Column(db.Integer, primary_key=True)
+    
+    # We will enforce user_a_id < user_b_id in our Python logic to guarantee 1 row per pair
     user_a_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user_b_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    compatibility_score = db.Column(db.Float, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # The calculated mutual compatibility percentage
+    score = db.Column(db.Float, nullable=False) 
+    
+    # Using updated_at instead of created_at so we know when the cache was last refreshed
+    updated_at = db.Column(
+        db.DateTime, 
+        default=lambda: datetime.now(timezone.utc), 
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
 
 
 class ConnectionRequest(db.Model):
