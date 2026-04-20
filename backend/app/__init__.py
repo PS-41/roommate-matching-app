@@ -31,6 +31,10 @@ def create_app():
     from .profile import profile_bp
     app.register_blueprint(profile_bp)
 
+    # Import the blueprint
+    from .compatibility import compatibility_bp
+    app.register_blueprint(compatibility_bp)
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({

@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import Navbar from '../components/Navbar';
+import MatchCard from '../components/MatchCard';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const [updatingSearch, setUpdatingSearch] = useState(false);
   const [error, setError] = useState('');
   const [matches, setMatches] = useState([]);
@@ -15,6 +17,23 @@ export default function Dashboard() {
     zip_code: '',
     search_radius_miles: 10,
   });
+
+  const fetchRecommendations = useCallback(async () => {
+    setMatchesLoading(true);
+
+    try {
+      const recommendations = await api.request('/compatibility/recommendations');
+      setMatches(Array.isArray(recommendations) ? recommendations : []);
+    } catch (err) {
+      console.error('Error fetching recommendations:', err);
+      setMatches([]);
+      setError((prev) =>
+        prev || 'Failed to load potential roommates. Please try again.'
+      );
+    } finally {
+      setMatchesLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -30,8 +49,14 @@ export default function Dashboard() {
             search_radius_miles: profileData.search_radius_miles || 10,
           });
         } catch (profileErr) {
+          console.error('Error fetching profile data:', profileErr);
+        }
+
+        if (userData?.has_location_set) {
+          await fetchRecommendations();
         }
       } catch (err) {
+        console.error('Error loading dashboard:', err);
         setError('Failed to load user data. Please try logging in again.');
       } finally {
         setLoading(false);
@@ -39,7 +64,7 @@ export default function Dashboard() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [fetchRecommendations]);
 
   const handleSearchUpdate = async (e) => {
     e.preventDefault();
@@ -57,7 +82,14 @@ export default function Dashboard() {
 
       const userData = await api.getCurrentUser();
       setUser(userData);
+
+      if (userData?.has_location_set) {
+        await fetchRecommendations();
+      } else {
+        setMatches([]);
+      }
     } catch (err) {
+      console.error('Error updating search settings:', err);
       setError(err.message || 'Failed to update search settings.');
     } finally {
       setUpdatingSearch(false);
@@ -197,6 +229,12 @@ export default function Dashboard() {
               Complete Profile
             </Link>
           </div>
+        ) : matchesLoading ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12">
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+            </div>
+          </div>
         ) : matches.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -210,7 +248,12 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {}
+            {matches.map((match) => (
+              <MatchCard
+                key={match.user_id || match.id || `${match.first_name}-${match.age}`}
+                match={match}
+              />
+            ))}
           </div>
         )}
       </main>

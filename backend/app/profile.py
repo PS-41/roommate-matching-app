@@ -4,6 +4,7 @@ import math
 import pgeocode
 from .models import User, Preference
 from .extensions import db
+from .compatibility import update_user_matches
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/api/profile')
 
@@ -129,6 +130,14 @@ def update_profile():
     pref.pets_is_strict = to_bool(data.get('pets_is_strict', False), False)
 
     db.session.commit()
+
+    try:
+        update_user_matches(user.id)
+    except Exception as e:
+        print(f"Error updating matches: {e}")
+        # We don't return an error to the user if the background math fails, 
+        # we just log it and let them continue smoothly.
+
     return jsonify({"message": "Profile updated successfully"}), 200
 
 
