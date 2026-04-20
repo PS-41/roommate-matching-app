@@ -8,32 +8,29 @@ from .extensions import db, migrate
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
+
     CORS(app)
 
-    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    
-    # Initialize JWT Manager
+
     jwt = JWTManager(app)
-    
-    # Import models so Flask-Migrate can register them
+
     from . import models
 
-    # Import and register the authentication blueprint
     from .auth import auth_bp
     app.register_blueprint(auth_bp)
 
-    # Import and register the profile blueprint
     from .profile import profile_bp
     app.register_blueprint(profile_bp)
 
-    # Import the blueprint
     from .compatibility import compatibility_bp
     app.register_blueprint(compatibility_bp)
+
+    from .messages import messages_bp
+    app.register_blueprint(messages_bp)
 
     @app.route('/api/health', methods=['GET'])
     def health_check():

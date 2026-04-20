@@ -171,7 +171,7 @@ export default function Matches() {
                       actions={
                         <>
                           <Link
-                            to="/inbox"
+                            to={`/inbox/${user.user_id}`}
                             className="inline-flex items-center px-4 py-2 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-500 transition-colors"
                           >
                             Chat

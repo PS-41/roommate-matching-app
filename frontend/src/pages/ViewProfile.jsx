@@ -318,7 +318,7 @@ export default function ViewProfile() {
                     {connectionStatus === 'connected' && (
                       <>
                         <Link
-                          to="/inbox"
+                          to={`/inbox/${profile.id}`}
                           className="inline-flex items-center px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-500 transition-colors"
                         >
                           Chat

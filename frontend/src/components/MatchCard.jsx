@@ -79,7 +79,7 @@ const MatchCard = ({ match }) => {
 
           {status === 'connected' ? (
             <Link
-              to="/inbox"
+              to={`/inbox/${match.user_id}`}
               className="flex-1 text-center bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
             >
               Chat

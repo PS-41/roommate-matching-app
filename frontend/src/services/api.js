@@ -102,4 +102,19 @@ export const api = {
   async getConnections() {
     return await this.request('/compatibility/connections');
   },
+
+  async getThreads() {
+    return await this.request('/messages/threads');
+  },
+
+  async getThread(userId) {
+    return await this.request(`/messages/thread/${userId}`);
+  },
+
+  async sendMessage(userId, content) {
+    return await this.request(`/messages/thread/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
 };
