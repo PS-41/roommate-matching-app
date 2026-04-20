@@ -8,140 +8,246 @@ from sqlalchemy import or_, and_
 
 compatibility_bp = Blueprint('compatibility', __name__, url_prefix='/api/compatibility')
 
+LIFESTYLE_TRAITS = [
+    'cleanliness',
+    'sleep_schedule',
+    'noise_tolerance',
+    'guests_frequency',
+    'smoking',
+    'drinking',
+]
 
-def calculate_mutual_score(pref_a, pref_b):
+
+def _pair_ids(user_a_id, user_b_id):
+    return (min(user_a_id, user_b_id), max(user_a_id, user_b_id))
+
+
+def _get_score_record(user_a_id, user_b_id):
+    id_a, id_b = _pair_ids(user_a_id, user_b_id)
+    return CompatibilityScore.query.filter_by(user_a_id=id_a, user_b_id=id_b).first()
+
+
+def _delete_score_record(user_a_id, user_b_id):
+    record = _get_score_record(user_a_id, user_b_id)
+    if record:
+        db.session.delete(record)
+
+
+def _upsert_score_record(user_a_id, user_b_id, mutual_score):
+    id_a, id_b = _pair_ids(user_a_id, user_b_id)
+    record = CompatibilityScore.query.filter_by(user_a_id=id_a, user_b_id=id_b).first()
+
+    if mutual_score is None or mutual_score <= 0:
+        if record:
+            db.session.delete(record)
+        return
+
+    if record:
+        record.score = mutual_score
+        record.updated_at = datetime.now(timezone.utc)
+    else:
+        db.session.add(
+            CompatibilityScore(
+                user_a_id=id_a,
+                user_b_id=id_b,
+                score=mutual_score,
+            )
+        )
+
+
+def _normalized_closeness(diff, max_diff=4):
+    score = 1 - (diff / max_diff)
+    return max(0.0, min(1.0, score))
+
+
+def _range_overlap_ratio(min_a, max_a, min_b, max_b):
+    overlap_low = max(min_a, min_b)
+    overlap_high = min(max_a, max_b)
+
+    if overlap_low > overlap_high:
+        return 0.0
+
+    overlap = overlap_high - overlap_low
+    union_low = min(min_a, min_b)
+    union_high = max(max_a, max_b)
+    union = union_high - union_low
+
+    if union <= 0:
+        return 1.0
+
+    return max(0.0, min(1.0, overlap / union))
+
+
+def calculate_directional_score(seeker_user, seeker_pref, candidate_user, candidate_pref):
     """
-    Calculates a mutual compatibility score between 0 and 100.
-    Returns 0 if a strict dealbreaker is violated.
+    Returns a score from 0..100 from the seeker's perspective only.
+    Returns None if the candidate violates one of the seeker's hard requirements.
     """
-    total_weight = 0
-    earned_weight = 0
+    total_weight = 0.0
+    earned_weight = 0.0
 
-    def evaluate_param(my_val, pref_val, is_strict, do_not_care, partner_my_val, partner_pref_val, partner_strict, partner_do_not_care):
-        nonlocal earned_weight, total_weight
+    def add_score(score_0_to_1, weight=1.0):
+        nonlocal total_weight, earned_weight
+        total_weight += weight
+        earned_weight += max(0.0, min(1.0, score_0_to_1)) * weight
 
-        if do_not_care or partner_do_not_care:
-            return True
+    # 1. Gender preference (treated as a hard filter if specified)
+    preferred_gender = seeker_pref.preferred_gender or 'Any'
+    if preferred_gender != 'Any':
+        if not candidate_user.gender or candidate_user.gender != preferred_gender:
+            return None
+        add_score(1.0, weight=1.0)
 
-        if pref_val is None or partner_my_val is None:
-            return True
+    # 2. Age preference (treated as a hard filter if specified)
+    if seeker_pref.preferred_age_min is not None or seeker_pref.preferred_age_max is not None:
+        if candidate_user.age is None:
+            return None
+        if seeker_pref.preferred_age_min is not None and candidate_user.age < seeker_pref.preferred_age_min:
+            return None
+        if seeker_pref.preferred_age_max is not None and candidate_user.age > seeker_pref.preferred_age_max:
+            return None
+        add_score(1.0, weight=1.0)
 
-        diff_a = abs(pref_val - partner_my_val)
-        diff_b = abs(partner_pref_val - my_val) if partner_pref_val is not None and my_val is not None else 0
+    # 3. Pets
+    if seeker_pref.pref_no_pets:
+        candidate_has_pets = bool(candidate_pref.has_pets)
+        if candidate_has_pets and seeker_pref.pets_is_strict:
+            return None
+        add_score(0.0 if candidate_has_pets else 1.0, weight=1.0)
 
-        if is_strict and diff_a > 1:
-            return False
-        if partner_strict and diff_b > 1:
-            return False
-
-        total_weight += 20
-        earned_weight += max(0, 10 - (diff_a * 2.5)) + max(0, 10 - (diff_b * 2.5))
-        return True
-
-    def budget_overlap(min_a, max_a, strict_a, min_b, max_b, strict_b):
-        nonlocal earned_weight, total_weight
-
-        if min_a is None or max_a is None or min_b is None or max_b is None:
-            return True
-
-        overlap_low = max(min_a, min_b)
-        overlap_high = min(max_a, max_b)
-        has_overlap = overlap_low <= overlap_high
-
-        if (strict_a or strict_b) and not has_overlap:
-            return False
-
-        total_weight += 20
-        earned_weight += 20 if has_overlap else 0
-        return True
-
-    def basic_preference_checks(user_a, pref_a, user_b, pref_b):
-        if pref_a.preferred_gender and pref_a.preferred_gender != 'Any':
-            if not user_b.gender or user_b.gender != pref_a.preferred_gender:
-                return False
-
-        if pref_b.preferred_gender and pref_b.preferred_gender != 'Any':
-            if not user_a.gender or user_a.gender != pref_b.preferred_gender:
-                return False
-
-        if pref_a.preferred_age_min is not None:
-            if user_b.age is None or user_b.age < pref_a.preferred_age_min:
-                return False
-        if pref_a.preferred_age_max is not None:
-            if user_b.age is None or user_b.age > pref_a.preferred_age_max:
-                return False
-
-        if pref_b.preferred_age_min is not None:
-            if user_a.age is None or user_a.age < pref_b.preferred_age_min:
-                return False
-        if pref_b.preferred_age_max is not None:
-            if user_a.age is None or user_a.age > pref_b.preferred_age_max:
-                return False
-
-        if pref_a.pets_is_strict and pref_a.pref_no_pets and pref_b.has_pets:
-            return False
-        if pref_b.pets_is_strict and pref_b.pref_no_pets and pref_a.has_pets:
-            return False
-
-        return True
-
-    # These checks are outside the weighted scoring
-    # We access user-level fields elsewhere in update_user_matches.
-    # This function focuses on Preference data only.
-
-    # 1. Cleanliness
-    if not evaluate_param(
-        pref_a.my_cleanliness, pref_a.pref_cleanliness, pref_a.cleanliness_is_strict, pref_a.cleanliness_do_not_care,
-        pref_b.my_cleanliness, pref_b.pref_cleanliness, pref_b.cleanliness_is_strict, pref_b.cleanliness_do_not_care
+    # 4. Budget
+    if (
+        seeker_pref.budget_min is not None and seeker_pref.budget_max is not None and
+        candidate_pref.budget_min is not None and candidate_pref.budget_max is not None
     ):
-        return 0.0
+        overlap_ratio = _range_overlap_ratio(
+            seeker_pref.budget_min,
+            seeker_pref.budget_max,
+            candidate_pref.budget_min,
+            candidate_pref.budget_max,
+        )
 
-    # 2. Sleep Schedule
-    if not evaluate_param(
-        pref_a.my_sleep_schedule, pref_a.pref_sleep_schedule, pref_a.sleep_schedule_is_strict, pref_a.sleep_schedule_do_not_care,
-        pref_b.my_sleep_schedule, pref_b.pref_sleep_schedule, pref_b.sleep_schedule_is_strict, pref_b.sleep_schedule_do_not_care
-    ):
-        return 0.0
+        if overlap_ratio == 0.0 and seeker_pref.budget_is_strict:
+            return None
 
-    # 3. Noise Tolerance
-    if not evaluate_param(
-        pref_a.my_noise_tolerance, pref_a.pref_noise_tolerance, pref_a.noise_tolerance_is_strict, pref_a.noise_tolerance_do_not_care,
-        pref_b.my_noise_tolerance, pref_b.pref_noise_tolerance, pref_b.noise_tolerance_is_strict, pref_b.noise_tolerance_do_not_care
-    ):
-        return 0.0
+        add_score(overlap_ratio, weight=1.0)
 
-    # 4. Guests
-    if not evaluate_param(
-        pref_a.my_guests_frequency, pref_a.pref_guests_frequency, pref_a.guests_frequency_is_strict, pref_a.guests_frequency_do_not_care,
-        pref_b.my_guests_frequency, pref_b.pref_guests_frequency, pref_b.guests_frequency_is_strict, pref_b.guests_frequency_do_not_care
-    ):
-        return 0.0
+    # 5. Lifestyle traits
+    for trait in LIFESTYLE_TRAITS:
+        do_not_care = getattr(seeker_pref, f'{trait}_do_not_care', False)
+        if do_not_care:
+            continue
 
-    # 5. Smoking
-    if not evaluate_param(
-        pref_a.my_smoking, pref_a.pref_smoking, pref_a.smoking_is_strict, pref_a.smoking_do_not_care,
-        pref_b.my_smoking, pref_b.pref_smoking, pref_b.smoking_is_strict, pref_b.smoking_do_not_care
-    ):
-        return 0.0
+        preferred_value = getattr(seeker_pref, f'pref_{trait}', None)
+        candidate_actual = getattr(candidate_pref, f'my_{trait}', None)
+        is_strict = getattr(seeker_pref, f'{trait}_is_strict', False)
 
-    # 6. Drinking
-    if not evaluate_param(
-        pref_a.my_drinking, pref_a.pref_drinking, pref_a.drinking_is_strict, pref_a.drinking_do_not_care,
-        pref_b.my_drinking, pref_b.pref_drinking, pref_b.drinking_is_strict, pref_b.drinking_do_not_care
-    ):
-        return 0.0
+        if preferred_value is None or candidate_actual is None:
+            continue
 
-    # 7. Budget overlap
-    if not budget_overlap(
-        pref_a.budget_min, pref_a.budget_max, pref_a.budget_is_strict,
-        pref_b.budget_min, pref_b.budget_max, pref_b.budget_is_strict
-    ):
-        return 0.0
+        diff = abs(preferred_value - candidate_actual)
+
+        if is_strict and diff > 1:
+            return None
+
+        add_score(_normalized_closeness(diff), weight=1.0)
 
     if total_weight == 0:
         return 50.0
 
     return round((earned_weight / total_weight) * 100, 1)
+
+
+def calculate_pair_mutual_score(user_a, pref_a, user_b, pref_b):
+    """
+    One-row mutual score:
+    - location/radius is always a hard mutual filter
+    - directional score is calculated both ways
+    - final score is the average of both directional scores
+    Returns None if incompatible.
+    """
+    if (
+        not user_a or not user_b or
+        not pref_a or not pref_b or
+        user_a.latitude is None or user_a.longitude is None or
+        user_b.latitude is None or user_b.longitude is None
+    ):
+        return None
+
+    coords_a = (user_a.latitude, user_a.longitude)
+    coords_b = (user_b.latitude, user_b.longitude)
+    distance_miles = geodesic(coords_a, coords_b).miles
+
+    # Location is always strict from both sides
+    if distance_miles > pref_a.search_radius_miles or distance_miles > pref_b.search_radius_miles:
+        return None
+
+    score_ab = calculate_directional_score(user_a, pref_a, user_b, pref_b)
+    if score_ab is None:
+        return None
+
+    score_ba = calculate_directional_score(user_b, pref_b, user_a, pref_a)
+    if score_ba is None:
+        return None
+
+    mutual_score = round((score_ab + score_ba) / 2.0, 1)
+
+    if mutual_score <= 0:
+        return None
+
+    return mutual_score
+
+
+def delete_all_scores_for_user(user_id):
+    CompatibilityScore.query.filter(
+        (CompatibilityScore.user_a_id == user_id) |
+        (CompatibilityScore.user_b_id == user_id)
+    ).delete(synchronize_session=False)
+
+
+def update_user_matches(user_id):
+    """
+    Recomputes the given user's compatibility against everyone else.
+    This function also removes stale rows when a pair becomes incompatible.
+    Because there is only ONE row per pair, updating this user refreshes the
+    dashboard ranking for both sides.
+    """
+    user = User.query.get(user_id)
+    user_pref = Preference.query.filter_by(user_id=user_id).first()
+
+    # If this user is not currently matchable, wipe all of their cached rows.
+    if (
+        not user or
+        not user_pref or
+        user.latitude is None or
+        user.longitude is None
+    ):
+        delete_all_scores_for_user(user_id)
+        db.session.commit()
+        return
+
+    partners = User.query.filter(User.id != user_id).all()
+
+    for partner in partners:
+        partner_pref = Preference.query.filter_by(user_id=partner.id).first()
+
+        mutual_score = calculate_pair_mutual_score(user, user_pref, partner, partner_pref)
+        _upsert_score_record(user.id, partner.id, mutual_score)
+
+    db.session.commit()
+
+
+def rebuild_all_compatibility_scores():
+    """
+    One-time helper you can call manually after deploying this new engine.
+    It clears the cache and rebuilds it for every user.
+    """
+    CompatibilityScore.query.delete(synchronize_session=False)
+    db.session.commit()
+
+    all_users = User.query.all()
+    for user in all_users:
+        update_user_matches(user.id)
 
 
 def get_connection_record(user_a_id, user_b_id):
@@ -183,66 +289,6 @@ def serialize_connection_user(user, status):
     }
 
 
-def update_user_matches(user_id):
-    """
-    Finds all potential matches for a user within their radius and updates the cache.
-    """
-    user = User.query.get(user_id)
-    user_pref = Preference.query.filter_by(user_id=user_id).first()
-
-    if not user or not user_pref or user.latitude is None or user.longitude is None:
-        return
-
-    user_coords = (user.latitude, user.longitude)
-    all_other_users = User.query.filter(User.id != user_id).all()
-
-    for partner in all_other_users:
-        partner_pref = Preference.query.filter_by(user_id=partner.id).first()
-        if not partner_pref or partner.latitude is None or partner.longitude is None:
-            continue
-
-        if not (
-            (user_pref.preferred_gender in [None, '', 'Any'] or partner.gender == user_pref.preferred_gender)
-            and (partner_pref.preferred_gender in [None, '', 'Any'] or user.gender == partner_pref.preferred_gender)
-        ):
-            continue
-
-        if user_pref.preferred_age_min is not None and (partner.age is None or partner.age < user_pref.preferred_age_min):
-            continue
-        if user_pref.preferred_age_max is not None and (partner.age is None or partner.age > user_pref.preferred_age_max):
-            continue
-        if partner_pref.preferred_age_min is not None and (user.age is None or user.age < partner_pref.preferred_age_min):
-            continue
-        if partner_pref.preferred_age_max is not None and (user.age is None or user.age > partner_pref.preferred_age_max):
-            continue
-
-        if user_pref.pets_is_strict and user_pref.pref_no_pets and partner_pref.has_pets:
-            continue
-        if partner_pref.pets_is_strict and partner_pref.pref_no_pets and user_pref.has_pets:
-            continue
-
-        partner_coords = (partner.latitude, partner.longitude)
-
-        distance_miles = geodesic(user_coords, partner_coords).miles
-        if distance_miles > user_pref.search_radius_miles or distance_miles > partner_pref.search_radius_miles:
-            continue
-
-        mutual_score = calculate_mutual_score(user_pref, partner_pref)
-
-        id_a, id_b = min(user.id, partner.id), max(user.id, partner.id)
-
-        score_record = CompatibilityScore.query.filter_by(user_a_id=id_a, user_b_id=id_b).first()
-
-        if score_record:
-            score_record.score = mutual_score
-            score_record.updated_at = datetime.now(timezone.utc)
-        else:
-            new_record = CompatibilityScore(user_a_id=id_a, user_b_id=id_b, score=mutual_score)
-            db.session.add(new_record)
-
-    db.session.commit()
-
-
 @compatibility_bp.route('/recommendations', methods=['GET'])
 @jwt_required()
 def get_recommendations():
@@ -255,16 +301,37 @@ def get_recommendations():
     current_coords = (current_user.latitude, current_user.longitude)
 
     scores = CompatibilityScore.query.filter(
-        (CompatibilityScore.user_a_id == current_user_id) |
-        (CompatibilityScore.user_b_id == current_user_id)
+        ((CompatibilityScore.user_a_id == current_user_id) |
+         (CompatibilityScore.user_b_id == current_user_id)) &
+        (CompatibilityScore.score > 0)
     ).order_by(CompatibilityScore.score.desc()).all()
 
     recommendations = []
     for score_record in scores:
-        partner_id = score_record.user_b_id if score_record.user_a_id == current_user_id else score_record.user_a_id
+        partner_id = (
+            score_record.user_b_id
+            if score_record.user_a_id == current_user_id
+            else score_record.user_a_id
+        )
         partner = User.query.get(partner_id)
+        partner_pref = Preference.query.filter_by(user_id=partner_id).first()
 
-        if not partner or partner.latitude is None or partner.longitude is None:
+        if (
+            not partner or
+            not partner_pref or
+            partner.latitude is None or
+            partner.longitude is None
+        ):
+            continue
+
+        # Extra safety: if stale data ever slips through, skip it here.
+        recalculated = calculate_pair_mutual_score(
+            current_user,
+            Preference.query.filter_by(user_id=current_user_id).first(),
+            partner,
+            partner_pref
+        )
+        if recalculated is None:
             continue
 
         partner_coords = (partner.latitude, partner.longitude)

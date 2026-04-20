@@ -1,8 +1,8 @@
-"""refactor: change match to compatibility_score
+"""reinitialize
 
-Revision ID: 39702a1431c5
+Revision ID: 164a53a0ac86
 Revises: 
-Create Date: 2026-04-20 11:03:56.645168
+Create Date: 2026-04-20 14:59:08.479210
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '39702a1431c5'
+revision = '164a53a0ac86'
 down_revision = None
 branch_labels = None
 depends_on = None
