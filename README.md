@@ -1,244 +1,257 @@
-# RoomieMatch – Preference-Based Roommate Matching Web Application
+# 🏠 RoomieMatch  
+### Preference-Based Roommate Matching Web Application
 
-RoomieMatch is a full-stack web application designed to intelligently match potential roommates based on structured lifestyle preferences, personal constraints, and geographic proximity.
+![React](https://img.shields.io/badge/Frontend-React-blue?logo=react)
+![Flask](https://img.shields.io/badge/Backend-Flask-black?logo=flask)
+![SQLite](https://img.shields.io/badge/Database-SQLite-lightgrey?logo=sqlite)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![License](https://img.shields.io/badge/License-Academic-blue)
 
-Unlike traditional roommate platforms that rely on manual browsing, RoomieMatch uses a mutual compatibility scoring engine to recommend the most suitable matches while enforcing strict dealbreakers such as location, budget, and lifestyle constraints.
+---
 
-------------------------------------------------------------
+## 📌 Overview
 
-FEATURES
+**RoomieMatch** is a full-stack web application that intelligently matches potential roommates based on **lifestyle preferences, constraints, and geographic proximity**.
 
-Authentication
-- User registration and login using JWT-based authentication
-- Protected routes for authenticated access
-- Secure password hashing
+Unlike traditional roommate platforms, this system uses a **mutual compatibility scoring engine** to recommend only those matches where **both users are likely to be satisfied**, ensuring higher quality and realistic roommate pairings.
 
-Profile & Preferences
-- Detailed user profiles including:
-  - Age, gender, occupation, bio
-  - Budget range
-  - Location (ZIP/postal code + radius)
-- Structured preference system:
-  - Lifestyle traits (cleanliness, sleep schedule, noise tolerance, etc.)
-  - Dealbreakers (strict constraints)
-  - “Do not care” options
+---
 
-Compatibility Engine
-- Mutual compatibility scoring (A → B and B → A)
-- Hard constraints:
-  - Location radius (strict)
-  - Gender preference
+## ✨ Key Features
+
+### 🔐 Authentication
+- Secure login & signup (JWT-based)
+- Protected routes
+- Password hashing
+
+### 👤 Smart Profile System
+- Personal details: age, gender, occupation, bio
+- Budget preferences
+- Location (ZIP + radius)
+- Lifestyle attributes:
+  - Cleanliness
+  - Sleep schedule
+  - Noise tolerance
+  - Guests
+  - Smoking & drinking
+
+### 🎯 Advanced Matching Engine
+- Mutual compatibility scoring (A ↔ B)
+- Hard filters (dealbreakers):
+  - Location radius
+  - Gender
   - Age range
-  - Budget overlap (optional strict)
-  - Pets preference
-  - Lifestyle dealbreakers
+  - Budget
+  - Pets
 - Soft scoring:
-  - Normalized similarity across lifestyle traits
-- Cached results stored in database for fast retrieval
+  - Lifestyle similarity
+- Cached for fast performance ⚡
 
-Dashboard
-- Ranked list of compatible users
-- Displays:
-  - Compatibility score
+### 📊 Dashboard
+- Ranked roommate recommendations
+- Shows:
+  - Compatibility %
   - Distance
-  - Basic profile info
-- Real-time updates after profile changes
+  - Profile summary
 
-Connection System
-- Send, accept, decline, and remove connection requests
-- Organized views:
+### 🤝 Connection System
+- Send / accept / decline requests
+- Organized into:
   - Connected users
   - Incoming requests
   - Outgoing requests
 
-Messaging
-- Chat system unlocked only after mutual connection
+### 💬 Messaging
+- Chat unlocked only after connection
 - Inbox with:
-  - Conversation threads
-  - Unread message indicators
+  - Threads
   - Message history
+  - Unread indicators
 
-Profile Viewing
-- View your own profile
-- View other users' profiles with:
-  - Compatibility context
-  - Connection actions (Connect / Accept / Chat / Remove)
+### 👀 Profile Viewing
+- View your profile
+- View other users
+- Dynamic actions:
+  - Connect / Accept / Chat / Remove
 
-------------------------------------------------------------
+---
 
-TECH STACK
+## 🖥️ Tech Stack
 
-Frontend
+### Frontend
 - React (Vite)
 - Tailwind CSS
 - React Router
-- Fetch-based API service layer
 
-Backend
+### Backend
 - Flask (Python)
 - SQLAlchemy ORM
-- Flask-JWT-Extended (authentication)
-- Flask-Migrate (database migrations)
+- JWT Authentication
+- Flask-Migrate
 
-Database
-- SQLite (development)
-- Designed for PostgreSQL (production-ready migration)
+### Database
+- SQLite (dev)
+- PostgreSQL-ready (prod)
 
-Geolocation
-- pgeocode for ZIP → latitude/longitude
-- geopy for distance computation
+### Geolocation
+- `pgeocode` (ZIP → coordinates)
+- `geopy` (distance calculation)
 
-------------------------------------------------------------
+---
 
-PROJECT STRUCTURE
-
+## 📂 Project Structure
+```
 roommate-matching-app/
 ├── backend/
-│   ├── run.py
-│   ├── requirements.txt
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── extensions.py
-│   │   ├── models.py
-│   │   ├── auth.py
-│   │   ├── profile.py
-│   │   ├── compatibility.py
-│   │   ├── messages.py
-│   ├── migrations/
-│   ├── app.db
-│   └── uploads/
+│ ├── run.py
+│ ├── requirements.txt
+│ ├── app/
+│ │ ├── auth.py
+│ │ ├── profile.py
+│ │ ├── compatibility.py
+│ │ ├── messages.py
+│ │ ├── models.py
+│ ├── migrations/
+│ ├── app.db
 │
 ├── frontend/
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── package.json
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── components/
-│   │   ├── pages/
-│   │   └── services/api.js
+│ ├── src/
+│ │ ├── pages/
+│ │ ├── components/
+│ │ ├── services/api.js
 │
-├── README.md
-└── .gitignore
+└── README.md
+```
 
-------------------------------------------------------------
+---
 
-LOCAL SETUP INSTRUCTIONS
+## ⚙️ Local Setup
 
 1. Clone the Repository
-
+```
 git clone https://github.com/PS-41/roommate-matching-app.git
 cd roommate-matching-app
-
+```
 ------------------------------------------------------------
 
 2. Backend Setup
-
+```
 cd backend
 python -m venv .venv
-
+```
 Activate environment:
 
 Mac/Linux:
+```
 source .venv/bin/activate
-
+```
 Windows:
+```
 .venv\Scripts\activate
-
+```
 Install dependencies:
+```
 pip install -r requirements.txt
-
+```
 Create .env file inside backend/:
-
+```
 FLASK_ENV=development
 PORT=5000
 SECRET_KEY=dev_secret_key
 JWT_SECRET_KEY=dev_jwt_secret
 DATABASE_URL=sqlite:///app.db
-
+```
 Run backend:
+```
 python run.py
-
+```
 Backend runs at:
+```
 http://localhost:5000
-
+```
 ------------------------------------------------------------
 
 3. Frontend Setup
-
+```
 cd frontend
 npm install
-
+```
 Create .env inside frontend/:
-
+```
 VITE_API_BASE_URL=http://localhost:5000/api
-
+```
 Run frontend:
+```
 npm run dev
-
+```
 Frontend runs at:
+```
 http://localhost:5173
-
+```
 ------------------------------------------------------------
 
-TESTING THE APPLICATION
+## 🧪 How to Test
 
-1. Register a new user
-2. Complete profile (location + preferences REQUIRED)
-3. Create a second user
+1. Register a user
+2. Complete profile (IMPORTANT)
+3. Create second user
 4. Verify:
-   - Matches appear on dashboard
-   - Connection requests work
-   - Messaging works after acceptance
+   - Matches appear
+   - Connection works
+   - Chat works after acceptance
 
-------------------------------------------------------------
+---
 
-KEY DESIGN DECISIONS
+## 🧠 System Design Highlights
 
-- Mutual Compatibility Scoring
-  Ensures both users are satisfied, not just one side
+### ✔ Mutual Matching Logic
+Ensures compatibility from both users’ perspectives
 
-- Precomputed Compatibility Cache
-  Heavy computation happens on profile update
-  Dashboard queries are fast and scalable
+### ✔ Cached Compatibility Table
+- Heavy computation → profile update
+- Fast dashboard queries
 
-- Strict vs Flexible Preferences
-  Hard constraints filter users completely
-  Soft preferences influence ranking
+### ✔ Hybrid Matching
+- Hard constraints → filtering
+- Soft scoring → ranking
 
-- Controlled Communication
-  Messaging only allowed after mutual acceptance
+### ✔ Controlled Communication
+- No chat unless both users agree
 
-------------------------------------------------------------
+---
 
-FUTURE IMPROVEMENTS
+## 🔮 Future Improvements
 
-- Weighted preference importance
-- Match explanation system
-- Real-time messaging (WebSockets)
-- Profile photos and verification
-- Notifications (requests/messages)
+- Match explanation (Why this match?)
+- AI-assisted roommate suggestions with natural language preferences
+- Weighted preferences
+- Real-time chat (WebSockets)
+- Profile photos & verification
+- Notifications system
 - PostgreSQL migration
 - Cloud deployment (AWS/GCP)
 
-------------------------------------------------------------
+---
 
-REPOSITORY
+## 🌐 Repository
 
-https://github.com/PS-41/roommate-matching-app
+👉 https://github.com/PS-41/roommate-matching-app
 
-------------------------------------------------------------
+---
 
-AUTHOR
+## 👨‍💻 Author
 
-Prakhar Suryavansh  
+**Prakhar Suryavansh**  
 CSCE 685 – Directed Studies  
 Texas A&M University
 
-------------------------------------------------------------
+---
 
-LICENSE
+## 📜 License
 
 This project is developed for academic purposes.  
-You may reuse or extend it with proper attribution.
+You are free to extend and build upon it with proper attribution.
+
+---
+
+⭐ If you found this project interesting, consider starring the repo!
