@@ -4,6 +4,8 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import ViewProfile from './pages/ViewProfile';
+import Matches from './pages/Matches';
+import Inbox from './pages/Inbox';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/view-profile" element={<ViewProfile />} />
       <Route path="/users/:userId" element={<ViewProfile />} />
+      <Route path="/matches" element={<Matches />} />
+      <Route path="/inbox" element={<Inbox />} />
     </Routes>
   );
 }

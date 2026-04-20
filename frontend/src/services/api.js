@@ -66,4 +66,40 @@ export const api = {
   async getPublicProfile(userId) {
     return await this.request(`/profile/view/${userId}`);
   },
+
+  async getRecommendations() {
+    return await this.request('/compatibility/recommendations');
+  },
+
+  async getConnectionStatus(userId) {
+    return await this.request(`/compatibility/connections/status/${userId}`);
+  },
+
+  async sendConnectionRequest(userId) {
+    return await this.request(`/compatibility/connections/request/${userId}`, {
+      method: 'POST',
+    });
+  },
+
+  async acceptConnectionRequest(userId) {
+    return await this.request(`/compatibility/connections/accept/${userId}`, {
+      method: 'POST',
+    });
+  },
+
+  async declineConnectionRequest(userId) {
+    return await this.request(`/compatibility/connections/decline/${userId}`, {
+      method: 'POST',
+    });
+  },
+
+  async removeConnection(userId) {
+    return await this.request(`/compatibility/connections/remove/${userId}`, {
+      method: 'POST',
+    });
+  },
+
+  async getConnections() {
+    return await this.request('/compatibility/connections');
+  },
 };

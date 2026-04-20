@@ -76,26 +76,41 @@ export default function ViewProfile() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('none');
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const isOwnProfile = useMemo(() => {
     if (!profile || !currentUser) return false;
     return profile.is_self || Number(profile.id) === Number(currentUser.id);
   }, [profile, currentUser]);
 
+  const refreshProfile = async () => {
+    const me = await api.getCurrentUser();
+    setCurrentUser(me);
+
+    const targetUserId = userId ? Number(userId) : Number(me.id);
+    const data = await api.getPublicProfile(targetUserId);
+    setProfile(data);
+
+    if (Number(targetUserId) !== Number(me.id)) {
+      const statusRes = await api.getConnectionStatus(targetUserId);
+      setConnectionStatus(statusRes.status || 'none');
+    } else {
+      setConnectionStatus('self');
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError('');
+      setActionError('');
 
       try {
-        const me = await api.getCurrentUser();
-        setCurrentUser(me);
-
-        const targetUserId = userId ? Number(userId) : Number(me.id);
-        const data = await api.getPublicProfile(targetUserId);
-        setProfile(data);
+        await refreshProfile();
       } catch (err) {
         setError(err.message || 'Failed to load profile.');
       } finally {
@@ -105,6 +120,66 @@ export default function ViewProfile() {
 
     fetchData();
   }, [userId]);
+
+  const handleConnect = async () => {
+    if (!profile) return;
+    setActionError('');
+    setActionLoading(true);
+
+    try {
+      await api.sendConnectionRequest(profile.id);
+      setConnectionStatus('pending_outgoing');
+    } catch (err) {
+      setActionError(err.message || 'Failed to send request.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!profile) return;
+    setActionError('');
+    setActionLoading(true);
+
+    try {
+      await api.acceptConnectionRequest(profile.id);
+      setConnectionStatus('connected');
+    } catch (err) {
+      setActionError(err.message || 'Failed to accept request.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!profile) return;
+    setActionError('');
+    setActionLoading(true);
+
+    try {
+      await api.declineConnectionRequest(profile.id);
+      setConnectionStatus('none');
+    } catch (err) {
+      setActionError(err.message || 'Failed to decline request.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!profile) return;
+    setActionError('');
+    setActionLoading(true);
+
+    try {
+      await api.removeConnection(profile.id);
+      setConnectionStatus('none');
+    } catch (err) {
+      setActionError(err.message || 'Failed to remove connection.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -195,7 +270,71 @@ export default function ViewProfile() {
                   >
                     Edit Profile
                   </Link>
-                ) : null}
+                ) : (
+                  <>
+                    {connectionStatus === 'none' && (
+                      <button
+                        type="button"
+                        onClick={handleConnect}
+                        disabled={actionLoading}
+                        className="inline-flex items-center px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-500 transition-colors disabled:opacity-70"
+                      >
+                        {actionLoading ? 'Sending...' : 'Connect'}
+                      </button>
+                    )}
+
+                    {connectionStatus === 'pending_outgoing' && (
+                      <button
+                        type="button"
+                        onClick={handleRemove}
+                        disabled={actionLoading}
+                        className="inline-flex items-center px-5 py-2.5 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors disabled:opacity-70"
+                      >
+                        {actionLoading ? 'Updating...' : 'Withdraw Request'}
+                      </button>
+                    )}
+
+                    {connectionStatus === 'pending_incoming' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleAccept}
+                          disabled={actionLoading}
+                          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-500 transition-colors disabled:opacity-70"
+                        >
+                          {actionLoading ? 'Updating...' : 'Accept Request'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDecline}
+                          disabled={actionLoading}
+                          className="inline-flex items-center px-5 py-2.5 rounded-lg border border-red-300 bg-white text-red-600 font-semibold hover:bg-red-50 transition-colors disabled:opacity-70"
+                        >
+                          Decline
+                        </button>
+                      </>
+                    )}
+
+                    {connectionStatus === 'connected' && (
+                      <>
+                        <Link
+                          to="/inbox"
+                          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-500 transition-colors"
+                        >
+                          Chat
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={handleRemove}
+                          disabled={actionLoading}
+                          className="inline-flex items-center px-5 py-2.5 rounded-lg border border-red-300 bg-white text-red-600 font-semibold hover:bg-red-50 transition-colors disabled:opacity-70"
+                        >
+                          {actionLoading ? 'Updating...' : 'Remove Connection'}
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
 
                 <button
                   type="button"
@@ -206,13 +345,13 @@ export default function ViewProfile() {
                 </button>
               </div>
             </div>
-          </div>
 
-          {!isOwnProfile && (
-            <div className="px-6 sm:px-8 py-4 bg-amber-50 border-t border-amber-100 text-sm text-amber-800">
-              Connect, chat, and connected-user actions will be added in the next phase.
-            </div>
-          )}
+            {actionError && (
+              <div className="mt-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-md text-red-700 font-medium">
+                {actionError}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
