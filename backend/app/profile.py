@@ -37,6 +37,80 @@ def to_str(val):
     return str(val)
 
 
+def mask_zip_code(zip_code):
+    if not zip_code:
+        return ''
+    zip_code = str(zip_code).strip()
+    if len(zip_code) <= 2:
+        return '*' * len(zip_code)
+    if len(zip_code) <= 4:
+        return zip_code[:1] + ('*' * (len(zip_code) - 1))
+    return zip_code[:3] + ('*' * (len(zip_code) - 3))
+
+
+def build_public_profile(user, pref, is_self=False):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "display_name": (
+            f"{(user.first_name or '').strip()} {(user.last_name or '').strip()}".strip()
+            or user.username
+        ),
+        "first_name": user.first_name or '',
+        "last_name": user.last_name or '',
+        "age": user.age,
+        "gender": user.gender or 'Prefer not to say',
+        "occupation": user.occupation or 'Not specified',
+        "about_me": user.about_me or '',
+        "target_country": user.target_country or '',
+        "zip_code_display": (user.zip_code or '') if is_self else mask_zip_code(user.zip_code),
+        "search_radius_miles": pref.search_radius_miles if pref and pref.search_radius_miles is not None else 10,
+        "is_self": is_self,
+
+        "preferred_gender": pref.preferred_gender if pref and pref.preferred_gender else 'Any',
+        "preferred_age_min": pref.preferred_age_min if pref and pref.preferred_age_min is not None else None,
+        "preferred_age_max": pref.preferred_age_max if pref and pref.preferred_age_max is not None else None,
+
+        "budget_min": pref.budget_min if pref and pref.budget_min is not None else None,
+        "budget_max": pref.budget_max if pref and pref.budget_max is not None else None,
+        "budget_is_strict": pref.budget_is_strict if pref else False,
+
+        "my_cleanliness": pref.my_cleanliness if pref and pref.my_cleanliness is not None else 3,
+        "pref_cleanliness": pref.pref_cleanliness if pref and pref.pref_cleanliness is not None else 3,
+        "cleanliness_is_strict": pref.cleanliness_is_strict if pref else False,
+        "cleanliness_do_not_care": pref.cleanliness_do_not_care if pref else False,
+
+        "my_sleep_schedule": pref.my_sleep_schedule if pref and pref.my_sleep_schedule is not None else 3,
+        "pref_sleep_schedule": pref.pref_sleep_schedule if pref and pref.pref_sleep_schedule is not None else 3,
+        "sleep_schedule_is_strict": pref.sleep_schedule_is_strict if pref else False,
+        "sleep_schedule_do_not_care": pref.sleep_schedule_do_not_care if pref else False,
+
+        "my_noise_tolerance": pref.my_noise_tolerance if pref and pref.my_noise_tolerance is not None else 3,
+        "pref_noise_tolerance": pref.pref_noise_tolerance if pref and pref.pref_noise_tolerance is not None else 3,
+        "noise_tolerance_is_strict": pref.noise_tolerance_is_strict if pref else False,
+        "noise_tolerance_do_not_care": pref.noise_tolerance_do_not_care if pref else False,
+
+        "my_guests_frequency": pref.my_guests_frequency if pref and pref.my_guests_frequency is not None else 3,
+        "pref_guests_frequency": pref.pref_guests_frequency if pref and pref.pref_guests_frequency is not None else 3,
+        "guests_frequency_is_strict": pref.guests_frequency_is_strict if pref else False,
+        "guests_frequency_do_not_care": pref.guests_frequency_do_not_care if pref else False,
+
+        "my_smoking": pref.my_smoking if pref and pref.my_smoking is not None else 3,
+        "pref_smoking": pref.pref_smoking if pref and pref.pref_smoking is not None else 3,
+        "smoking_is_strict": pref.smoking_is_strict if pref else False,
+        "smoking_do_not_care": pref.smoking_do_not_care if pref else False,
+
+        "my_drinking": pref.my_drinking if pref and pref.my_drinking is not None else 3,
+        "pref_drinking": pref.pref_drinking if pref and pref.pref_drinking is not None else 3,
+        "drinking_is_strict": pref.drinking_is_strict if pref else False,
+        "drinking_do_not_care": pref.drinking_do_not_care if pref else False,
+
+        "has_pets": pref.has_pets if pref and pref.has_pets is not None else False,
+        "pref_no_pets": pref.pref_no_pets if pref and pref.pref_no_pets is not None else False,
+        "pets_is_strict": pref.pets_is_strict if pref else False,
+    }
+
+
 @profile_bp.route('/update', methods=['POST'])
 @jwt_required()
 def update_profile():
@@ -89,7 +163,6 @@ def update_profile():
     pref.preferred_age_min = to_int(data.get('preferred_age_min'))
     pref.preferred_age_max = to_int(data.get('preferred_age_max'))
 
-
     pref.my_cleanliness = to_int(data.get('my_cleanliness'))
     pref.pref_cleanliness = to_int(data.get('pref_cleanliness'))
     pref.cleanliness_is_strict = to_bool(data.get('cleanliness_is_strict', False), False)
@@ -135,8 +208,6 @@ def update_profile():
         update_user_matches(user.id)
     except Exception as e:
         print(f"Error updating matches: {e}")
-        # We don't return an error to the user if the background math fails, 
-        # we just log it and let them continue smoothly.
 
     return jsonify({"message": "Profile updated successfully"}), 200
 
@@ -207,3 +278,17 @@ def get_profile():
     }
 
     return jsonify(profile_data), 200
+
+
+@profile_bp.route('/view/<int:user_id>', methods=['GET'])
+@jwt_required()
+def view_profile(user_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    pref = Preference.query.filter_by(user_id=user.id).first()
+    payload = build_public_profile(user, pref, is_self=(current_user_id == user.id))
+    return jsonify(payload), 200
