@@ -65,20 +65,29 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center space-x-3 focus:outline-none p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-3 focus:outline-none px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
               >
                 <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold border border-brand-200">
                   {avatarText}
                 </div>
 
                 <div className="flex flex-col text-left hidden sm:block">
-                  <span className="text-sm font-bold text-gray-900 leading-tight">
+                  <span className="text-sm font-semibold text-gray-900 leading-tight">
                     {displayName}
                   </span>
-                  <span className="text-xs text-gray-500 font-medium leading-tight">
-                    Options ▾
+                  <span className="text-xs text-gray-400 leading-tight">
+                    Account
                   </span>
                 </div>
+
+                <svg
+                  className={`w-4 h-4 text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
 
               {dropdownOpen && (

@@ -1,8 +1,8 @@
-"""feat: complete model rewrite for budget and lifestyle scoring
+"""feat: model rewrite to have do not care in preferences
 
-Revision ID: 8c8dd381b522
+Revision ID: 7eb01cbd022e
 Revises: 
-Create Date: 2026-04-19 18:41:34.462601
+Create Date: 2026-04-19 19:15:43.221560
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8c8dd381b522'
+revision = '7eb01cbd022e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -80,21 +80,27 @@ def upgrade():
     sa.Column('my_cleanliness', sa.Integer(), nullable=True),
     sa.Column('pref_cleanliness', sa.Integer(), nullable=True),
     sa.Column('cleanliness_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('cleanliness_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_sleep_schedule', sa.Integer(), nullable=True),
     sa.Column('pref_sleep_schedule', sa.Integer(), nullable=True),
     sa.Column('sleep_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('sleep_schedule_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_noise_tolerance', sa.Integer(), nullable=True),
     sa.Column('pref_noise_tolerance', sa.Integer(), nullable=True),
     sa.Column('noise_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('noise_tolerance_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_guests_frequency', sa.Integer(), nullable=True),
     sa.Column('pref_guests_frequency', sa.Integer(), nullable=True),
     sa.Column('guests_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('guests_frequency_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_smoking', sa.Integer(), nullable=True),
     sa.Column('pref_smoking', sa.Integer(), nullable=True),
     sa.Column('smoking_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('smoking_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('my_drinking', sa.Integer(), nullable=True),
     sa.Column('pref_drinking', sa.Integer(), nullable=True),
     sa.Column('drinking_is_strict', sa.Boolean(), nullable=True),
+    sa.Column('drinking_do_not_care', sa.Boolean(), nullable=True),
     sa.Column('budget_min', sa.Integer(), nullable=True),
     sa.Column('budget_max', sa.Integer(), nullable=True),
     sa.Column('budget_is_strict', sa.Boolean(), nullable=True),

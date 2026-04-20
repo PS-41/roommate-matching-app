@@ -29,26 +29,32 @@ export default function Profile() {
     my_cleanliness: 3,
     pref_cleanliness: 3,
     cleanliness_is_strict: false,
+    cleanliness_do_not_care: false,
 
     my_sleep_schedule: 3,
     pref_sleep_schedule: 3,
     sleep_is_strict: false,
+    sleep_schedule_do_not_care: false,
 
     my_noise_tolerance: 3,
     pref_noise_tolerance: 3,
     noise_is_strict: false,
+    noise_tolerance_do_not_care: false,
 
     my_guests_frequency: 3,
     pref_guests_frequency: 3,
     guests_is_strict: false,
+    guests_frequency_do_not_care: false,
 
     my_smoking: 3,
     pref_smoking: 3,
     smoking_is_strict: false,
+    smoking_do_not_care: false,
 
     my_drinking: 3,
     pref_drinking: 3,
     drinking_is_strict: false,
+    drinking_do_not_care: false,
 
     has_pets: false,
     pref_no_pets: false,
@@ -77,15 +83,26 @@ export default function Profile() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === 'checkbox'
-          ? checked
-          : type === 'number'
-            ? value
-            : value,
-    }));
+
+    setFormData((prev) => {
+      const newValue = type === 'checkbox' ? checked : value;
+      const next = { ...prev, [name]: newValue };
+
+      if (type === 'checkbox') {
+        const strictMatch = name.match(/^(.*)_is_strict$/);
+        const dontCareMatch = name.match(/^(.*)_do_not_care$/);
+
+        if (strictMatch && checked) {
+          next[`${strictMatch[1]}_do_not_care`] = false;
+        }
+
+        if (dontCareMatch && checked) {
+          next[`${dontCareMatch[1]}_is_strict`] = false;
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -106,12 +123,42 @@ export default function Profile() {
   };
 
   const numericTraits = [
-    { key: 'cleanliness', label: 'Cleanliness', minLabel: 'Messy', maxLabel: 'Neat Freak' },
-    { key: 'sleep_schedule', label: 'Sleep Schedule', minLabel: 'Early Bird', maxLabel: 'Night Owl' },
-    { key: 'noise_tolerance', label: 'Noise Tolerance', minLabel: 'Needs Silence', maxLabel: 'Loud' },
-    { key: 'guests_frequency', label: 'Guests', minLabel: 'Never', maxLabel: 'Frequent Host' },
-    { key: 'smoking', label: 'Smoking', minLabel: 'Never', maxLabel: 'Frequent' },
-    { key: 'drinking', label: 'Drinking', minLabel: 'Never', maxLabel: 'Frequent' },
+    {
+      key: 'cleanliness',
+      label: 'Cleanliness',
+      minLabel: 'Messy',
+      maxLabel: 'Neat Freak',
+    },
+    {
+      key: 'sleep_schedule',
+      label: 'Sleep Schedule',
+      minLabel: 'Early Bird',
+      maxLabel: 'Night Owl',
+    },
+    {
+      key: 'noise_tolerance',
+      label: 'Noise Tolerance',
+      minLabel: 'Needs Silence',
+      maxLabel: 'Loud',
+    },
+    {
+      key: 'guests_frequency',
+      label: 'Guests',
+      minLabel: 'Never',
+      maxLabel: 'Frequent Host',
+    },
+    {
+      key: 'smoking',
+      label: 'Smoking',
+      minLabel: 'Never',
+      maxLabel: 'Frequent',
+    },
+    {
+      key: 'drinking',
+      label: 'Drinking',
+      minLabel: 'Never',
+      maxLabel: 'Frequent',
+    },
   ];
 
   if (loading) {
@@ -194,11 +241,15 @@ export default function Profile() {
             <form onSubmit={handleSubmit}>
               {activeTab === 'basic' && (
                 <div className="space-y-6 animate-fadeIn">
-                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Identity & Location</h3>
+                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
+                    Identity & Location
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-gray-700">First Name</label>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        First Name
+                      </label>
                       <input
                         type="text"
                         name="first_name"
@@ -210,7 +261,9 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-gray-700">Last Name</label>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Last Name
+                      </label>
                       <input
                         type="text"
                         name="last_name"
@@ -236,7 +289,9 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-gray-700">Gender</label>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Gender
+                      </label>
                       <select
                         name="gender"
                         value={formData.gender}
@@ -252,7 +307,9 @@ export default function Profile() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold mb-1 text-gray-700">Occupation</label>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700">
+                        Occupation
+                      </label>
                       <select
                         name="occupation"
                         value={formData.occupation}
@@ -268,7 +325,9 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">About Me</label>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700">
+                      About Me
+                    </label>
                     <textarea
                       name="about_me"
                       rows="3"
@@ -290,12 +349,16 @@ export default function Profile() {
                           onChange={handleChange}
                           className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
                         />
-                        <span className="text-sm font-bold text-gray-700">Strict Dealbreaker</span>
+                        <span className="text-sm font-bold text-gray-700">
+                          Strict Dealbreaker
+                        </span>
                       </label>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-green-800">Minimum Budget</label>
+                      <label className="block text-sm font-semibold mb-1 text-green-800">
+                        Minimum Budget
+                      </label>
                       <input
                         type="number"
                         name="budget_min"
@@ -307,7 +370,9 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-green-800">Maximum Budget</label>
+                      <label className="block text-sm font-semibold mb-1 text-green-800">
+                        Maximum Budget
+                      </label>
                       <input
                         type="number"
                         name="budget_max"
@@ -321,7 +386,9 @@ export default function Profile() {
 
                   <div className="bg-brand-50 p-5 rounded-xl border border-brand-100 grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-brand-900">Country</label>
+                      <label className="block text-sm font-semibold mb-1 text-brand-900">
+                        Country
+                      </label>
                       <select
                         name="target_country"
                         value={formData.target_country}
@@ -336,7 +403,9 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-brand-900">ZIP / Postal Code</label>
+                      <label className="block text-sm font-semibold mb-1 text-brand-900">
+                        ZIP / Postal Code
+                      </label>
                       <input
                         type="text"
                         name="zip_code"
@@ -348,7 +417,9 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-1 text-brand-900">Radius (Miles)</label>
+                      <label className="block text-sm font-semibold mb-1 text-brand-900">
+                        Radius (Miles)
+                      </label>
                       <input
                         type="number"
                         name="search_radius_miles"
@@ -365,7 +436,9 @@ export default function Profile() {
 
               {activeTab === 'lifestyle' && (
                 <div className="space-y-6 animate-fadeIn">
-                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">My Lifestyle Habits</h3>
+                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
+                    My Lifestyle Habits
+                  </h3>
 
                   {numericTraits.map((trait) => (
                     <div key={trait.key} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -404,7 +477,9 @@ export default function Profile() {
 
               {activeTab === 'preferences' && (
                 <div className="space-y-6 animate-fadeIn">
-                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Roommate Dealbreakers</h3>
+                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
+                    Roommate Dealbreakers
+                  </h3>
 
                   {numericTraits.map((trait) => (
                     <div
@@ -422,16 +497,21 @@ export default function Profile() {
                           max="5"
                           value={formData[`pref_${trait.key}`]}
                           onChange={handleChange}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                          disabled={formData[`${trait.key}_do_not_care`]}
+                          className={`w-full h-2 rounded-lg appearance-none accent-brand-600 ${
+                            formData[`${trait.key}_do_not_care`]
+                              ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                              : 'bg-gray-200 cursor-pointer'
+                          }`}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
                           <span>1 - {trait.minLabel}</span>
-                          <span className="text-brand-600">3 - Normal / Doesn't matter</span>
+                          <span>3 - Neutral</span>
                           <span>5 - {trait.maxLabel}</span>
                         </div>
                       </div>
 
-                      <div className="md:w-40 bg-gray-50 p-3 rounded-lg border border-gray-200 flex justify-center">
+                      <div className="md:w-56 bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
                         <label className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -441,6 +521,17 @@ export default function Profile() {
                             className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
                           />
                           <span className="text-sm font-bold text-gray-700">Dealbreaker</span>
+                        </label>
+
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name={`${trait.key}_do_not_care`}
+                            checked={formData[`${trait.key}_do_not_care`]}
+                            onChange={handleChange}
+                            className="w-4 h-4 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">Do Not Care</span>
                         </label>
                       </div>
                     </div>

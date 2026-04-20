@@ -151,12 +151,12 @@ export default function Dashboard() {
           </button>
         </form>
 
-        <div className="flex flex-col md:flex-row justify-between items-center mb-10 bg-gradient-to-r from-brand-50 to-white p-8 rounded-3xl border border-brand-100 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-gradient-to-r from-brand-50 to-white p-6 rounded-2xl border border-brand-100 shadow-sm">
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
               Welcome back{user?.first_name ? `, ${user.first_name}` : ''}! 👋
             </h1>
-            <p className="mt-3 text-lg text-gray-600 font-medium">
+            <p className="mt-2 text-base text-gray-600 font-medium">
               {hasLocation
                 ? 'Here are your potential roommates, ranked by highest compatibility.'
                 : 'Set your search area and profile preferences to start discovering compatible roommates.'}
@@ -165,7 +165,7 @@ export default function Dashboard() {
 
           <Link
             to="/profile"
-            className="mt-6 md:mt-0 bg-white border-2 border-gray-200 text-gray-800 px-6 py-3.5 rounded-xl font-bold shadow-sm hover:border-brand-500 hover:text-brand-600 transition-all flex items-center space-x-3 group"
+            className="mt-4 md:mt-0 bg-white border border-gray-200 text-gray-800 px-5 py-3 rounded-xl font-semibold shadow-sm hover:border-brand-500 hover:text-brand-600 transition-all flex items-center space-x-3 group"
           >
             <span className="text-xl group-hover:rotate-12 transition-transform">⚙️</span>
             <span>Edit your preferences</span>

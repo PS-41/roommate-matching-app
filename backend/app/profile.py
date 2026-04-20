@@ -88,29 +88,36 @@ def update_profile():
     pref.preferred_age_min = to_int(data.get('preferred_age_min'))
     pref.preferred_age_max = to_int(data.get('preferred_age_max'))
 
+
     pref.my_cleanliness = to_int(data.get('my_cleanliness'))
     pref.pref_cleanliness = to_int(data.get('pref_cleanliness'))
     pref.cleanliness_is_strict = to_bool(data.get('cleanliness_is_strict', False), False)
+    pref.cleanliness_do_not_care = to_bool(data.get('cleanliness_do_not_care', False), False)
 
     pref.my_sleep_schedule = to_int(data.get('my_sleep_schedule'))
     pref.pref_sleep_schedule = to_int(data.get('pref_sleep_schedule'))
     pref.sleep_is_strict = to_bool(data.get('sleep_is_strict', False), False)
+    pref.sleep_schedule_do_not_care = to_bool(data.get('sleep_schedule_do_not_care', False), False)
 
     pref.my_noise_tolerance = to_int(data.get('my_noise_tolerance'))
     pref.pref_noise_tolerance = to_int(data.get('pref_noise_tolerance'))
     pref.noise_is_strict = to_bool(data.get('noise_is_strict', False), False)
+    pref.noise_tolerance_do_not_care = to_bool(data.get('noise_tolerance_do_not_care', False), False)
 
     pref.my_guests_frequency = to_int(data.get('my_guests_frequency'))
     pref.pref_guests_frequency = to_int(data.get('pref_guests_frequency'))
     pref.guests_is_strict = to_bool(data.get('guests_is_strict', False), False)
+    pref.guests_frequency_do_not_care = to_bool(data.get('guests_frequency_do_not_care', False), False)
 
     pref.my_smoking = to_int(data.get('my_smoking'))
     pref.pref_smoking = to_int(data.get('pref_smoking'))
     pref.smoking_is_strict = to_bool(data.get('smoking_is_strict', False), False)
+    pref.smoking_do_not_care = to_bool(data.get('smoking_do_not_care', False), False)
 
     pref.my_drinking = to_int(data.get('my_drinking'))
     pref.pref_drinking = to_int(data.get('pref_drinking'))
     pref.drinking_is_strict = to_bool(data.get('drinking_is_strict', False), False)
+    pref.drinking_do_not_care = to_bool(data.get('drinking_do_not_care', False), False)
 
     pref.budget_min = to_int(data.get('budget_min'))
     pref.budget_max = to_int(data.get('budget_max'))
@@ -151,29 +158,36 @@ def get_profile():
         "preferred_age_min": pref.preferred_age_min if pref and pref.preferred_age_min is not None else '',
         "preferred_age_max": pref.preferred_age_max if pref and pref.preferred_age_max is not None else '',
 
+
         "my_cleanliness": pref.my_cleanliness if pref and pref.my_cleanliness is not None else 3,
         "pref_cleanliness": pref.pref_cleanliness if pref and pref.pref_cleanliness is not None else 3,
         "cleanliness_is_strict": pref.cleanliness_is_strict if pref else False,
+        "cleanliness_do_not_care": pref.cleanliness_do_not_care if pref else False,
 
         "my_sleep_schedule": pref.my_sleep_schedule if pref and pref.my_sleep_schedule is not None else 3,
         "pref_sleep_schedule": pref.pref_sleep_schedule if pref and pref.pref_sleep_schedule is not None else 3,
         "sleep_is_strict": pref.sleep_is_strict if pref else False,
+        "sleep_schedule_do_not_care": pref.sleep_schedule_do_not_care if pref else False,
 
         "my_noise_tolerance": pref.my_noise_tolerance if pref and pref.my_noise_tolerance is not None else 3,
         "pref_noise_tolerance": pref.pref_noise_tolerance if pref and pref.pref_noise_tolerance is not None else 3,
         "noise_is_strict": pref.noise_is_strict if pref else False,
+        "noise_tolerance_do_not_care": pref.noise_tolerance_do_not_care if pref else False,
 
         "my_guests_frequency": pref.my_guests_frequency if pref and pref.my_guests_frequency is not None else 3,
         "pref_guests_frequency": pref.pref_guests_frequency if pref and pref.pref_guests_frequency is not None else 3,
         "guests_is_strict": pref.guests_is_strict if pref else False,
+        "guests_frequency_do_not_care": pref.guests_frequency_do_not_care if pref else False,
 
         "my_smoking": pref.my_smoking if pref and pref.my_smoking is not None else 3,
         "pref_smoking": pref.pref_smoking if pref and pref.pref_smoking is not None else 3,
         "smoking_is_strict": pref.smoking_is_strict if pref else False,
+        "smoking_do_not_care": pref.smoking_do_not_care if pref else False,
 
         "my_drinking": pref.my_drinking if pref and pref.my_drinking is not None else 3,
         "pref_drinking": pref.pref_drinking if pref and pref.pref_drinking is not None else 3,
         "drinking_is_strict": pref.drinking_is_strict if pref else False,
+        "drinking_do_not_care": pref.drinking_do_not_care if pref else False,
 
         "budget_min": pref.budget_min if pref and pref.budget_min is not None else '',
         "budget_max": pref.budget_max if pref and pref.budget_max is not None else '',
